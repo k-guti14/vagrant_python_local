@@ -1,0 +1,8 @@
+---
+- name: start docker
+  become: True
+  service: name=docker state=started enabled=yes
+
+- name: restart samba
+  become: True
+  service: name=docker state=restarted

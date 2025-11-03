@@ -1,0 +1,7 @@
+---
+# zip インストール
+- name: Install Zip
+  apt:
+    name: zip
+    state: present
+  become: yes

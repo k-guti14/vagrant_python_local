@@ -1,0 +1,78 @@
+---
+# 古いdockerを削除
+- name: Remove old docker packages using yum.
+  apt:
+    name: "{{ packages }}"
+    state: absent
+  vars:
+    packages:
+    - docker
+    - docker-client
+    - docker-client-latest
+    - docker-common
+    - docker-latest
+    - docker-latest-logrotate
+    - docker-logrotate
+    - docker-engine
+
+# Dockerに必要なパッケージをインストール
+- name: Install require packages for docker from yum.
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+
+# Add Docker’s official GPG key
+- name: Add docker GPG key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+  become: yes
+
+# Dockerのyumリポジトリを追加
+- name: Add apt repository
+  apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+  become: yes
+
+
+# Dockerをインストール
+- name: Install Docker packages
+  apt:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+  become: yes
+
+# # Dockerを起動
+- name: Ensure docker service is enabled
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+  become: yes
+
+# # Docker Composeをインストール
+- name: Install docker-compose
+  get_url:
+    url: "https://github.com/docker/compose/releases/download/1.29.1/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}"
+    dest: /usr/local/bin/docker-compose
+    mode: +x
+  become: yes
+
+# # Dockerユーザー追加
+- name: Add user to docker group
+  user:
+    name: "vagrant"
+    groups:
+      - docker
+    append: yes
+  become: yes
